@@ -25,6 +25,7 @@ if window?
 # Atom has a `window`, but not a `window.CoffeeScript`. Calling `nodeRequire`
 # here should fix Atom without breaking anything else.
 CoffeeScript ?= nodeRequire 'coffee-script'
+CoffeeReactTransform = nodeRequire 'coffee-react-transform'
 
 unless CoffeeScript?
     throw new Error('Unable to find CoffeeScript')
@@ -226,6 +227,7 @@ hasSyntaxError = (source) ->
     try
         # If there are syntax errors this will abort the lexical and line
         # linters.
+        source = CoffeeReactTransform(source)
         CoffeeScript.tokens(source)
         return false
     return true
@@ -305,8 +307,11 @@ coffeelint.lint = (source, userConfig = {}, literate = false) ->
             config[rule].level = 'error'
 
     # Do AST linting first so all compile errors are caught.
-    astErrors = new ASTLinter(source, config, _rules, CoffeeScript).lint()
+    astErrors = new ASTLinter(source, config, _rules, CoffeeScript,
+                              CoffeeReactTransform).lint()
     errors = errors.concat(astErrors)
+
+    errors = [].concat(astErrors)
 
     # only do further checks if the syntax is okay, otherwise they just fail
     # with syntax error exceptions
