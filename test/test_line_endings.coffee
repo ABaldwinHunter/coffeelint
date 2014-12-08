@@ -61,3 +61,5 @@ vows.describe(RULE).addBatch({
                 coffeelint.lint(source, config)
 
 }).export(module)
+## NOTE, coffeelint-cjsx does not check for line endings. The CJSX
+# compiler automatically normalizes line endings.
