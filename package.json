@@ -1,6 +1,6 @@
 {
   "name": "coffeelint",
-  "description": "Lint your CoffeeScript",
+  "description": "Lint your CoffeeScript and CJSX",
   "version": "1.16.7",
   "homepage": "http://www.coffeelint.org",
   "keywords": [
