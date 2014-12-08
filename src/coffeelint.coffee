@@ -223,15 +223,6 @@ coffeelint.registerRule require './rules/no_this.coffee'
 coffeelint.registerRule require './rules/eol_last.coffee'
 coffeelint.registerRule require './rules/no_private_function_fat_arrows.coffee'
 
-hasSyntaxError = (source) ->
-    try
-        # If there are syntax errors this will abort the lexical and line
-        # linters.
-        source = CoffeeReactTransform(source)
-        CoffeeScript.tokens(source)
-        return false
-    return true
-
 ErrorReport = require('./error_report.coffee')
 coffeelint.getErrorReport = ->
     new ErrorReport coffeelint
@@ -315,7 +306,20 @@ coffeelint.lint = (source, userConfig = {}, literate = false) ->
 
     # only do further checks if the syntax is okay, otherwise they just fail
     # with syntax error exceptions
-    unless hasSyntaxError(source)
+
+    hasSyntaxError = false
+    try
+        # If there are syntax errors this will abort the lexical and line
+        # linters.
+
+        # This will also compile CoffeeReact to plain Coffeescript so it
+        # can be lexicaly linted properly
+        source = CoffeeReactTransform(source)
+        CoffeeScript.tokens(source)
+    catch
+        hasSyntaxError = true
+
+    unless hasSyntaxError
         # Do lexical linting.
         lexicalLinter = new LexicalLinter(source, config, _rules, CoffeeScript)
         lexErrors = lexicalLinter.lint()
