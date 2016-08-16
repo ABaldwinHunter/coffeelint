@@ -1,7 +1,7 @@
 {
   "name": "coffeelint",
-  "description": "Lint your CoffeeScript",
-  "version": "1.15.7",
+  "description": "Lint your CoffeeScript and CJSX",
+  "version": "1.16.7",
   "homepage": "http://www.coffeelint.org",
   "keywords": [
     "lint",
@@ -25,6 +25,7 @@
     "browserify": "~8.1.0",
     "coffee-script": "~1.10.0",
     "coffeeify": "~1.0.0",
+    "coffee-react-transform": "^4.0.0",
     "glob": "^4.0.0",
     "ignore": "^3.0.9",
     "optimist": "^0.6.1",

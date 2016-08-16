@@ -25,6 +25,7 @@ if window?
 # Atom has a `window`, but not a `window.CoffeeScript`. Calling `nodeRequire`
 # here should fix Atom without breaking anything else.
 CoffeeScript ?= nodeRequire 'coffee-script'
+CoffeeReactTransform = nodeRequire 'coffee-react-transform'
 
 unless CoffeeScript?
     throw new Error('Unable to find CoffeeScript')
@@ -183,7 +184,9 @@ coffeelint.registerRule require './rules/braces_spacing.coffee'
 coffeelint.registerRule require './rules/no_tabs.coffee'
 coffeelint.registerRule require './rules/no_trailing_whitespace.coffee'
 coffeelint.registerRule require './rules/max_line_length.coffee'
-coffeelint.registerRule require './rules/line_endings.coffee'
+# Note that line_endings can't be used with coffeelint-cjsx right now
+# because the CJSX compiler strips out all windows line endings.
+# coffeelint.registerRule require './rules/line_endings.coffee'
 coffeelint.registerRule require './rules/no_trailing_semicolons.coffee'
 coffeelint.registerRule require './rules/indentation.coffee'
 coffeelint.registerRule require './rules/camel_case_classes.coffee'
@@ -221,14 +224,6 @@ coffeelint.registerRule require './rules/ensure_comprehensions.coffee'
 coffeelint.registerRule require './rules/no_this.coffee'
 coffeelint.registerRule require './rules/eol_last.coffee'
 coffeelint.registerRule require './rules/no_private_function_fat_arrows.coffee'
-
-hasSyntaxError = (source) ->
-    try
-        # If there are syntax errors this will abort the lexical and line
-        # linters.
-        CoffeeScript.tokens(source)
-        return false
-    return true
 
 ErrorReport = require('./error_report.coffee')
 coffeelint.getErrorReport = ->
@@ -305,12 +300,28 @@ coffeelint.lint = (source, userConfig = {}, literate = false) ->
             config[rule].level = 'error'
 
     # Do AST linting first so all compile errors are caught.
-    astErrors = new ASTLinter(source, config, _rules, CoffeeScript).lint()
+    astErrors = new ASTLinter(source, config, _rules, CoffeeScript,
+                              CoffeeReactTransform).lint()
     errors = errors.concat(astErrors)
+
+    errors = [].concat(astErrors)
 
     # only do further checks if the syntax is okay, otherwise they just fail
     # with syntax error exceptions
-    unless hasSyntaxError(source)
+
+    hasSyntaxError = false
+    try
+        # If there are syntax errors this will abort the lexical and line
+        # linters.
+
+        # This will also compile CoffeeReact to plain Coffeescript so it
+        # can be lexicaly linted properly
+        source = CoffeeReactTransform(source)
+        CoffeeScript.tokens(source)
+    catch
+        hasSyntaxError = true
+
+    unless hasSyntaxError
         # Do lexical linting.
         lexicalLinter = new LexicalLinter(source, config, _rules, CoffeeScript)
         lexErrors = lexicalLinter.lint()
